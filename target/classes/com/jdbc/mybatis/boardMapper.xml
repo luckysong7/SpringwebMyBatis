@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="boardMapper">
+
+	<!-- num의 최대값 -->
+	<select id="maxNum" resultType="int">
+		select nvl(max(num),0) from board
+	</select>
+
+	<!-- 데이터 입력 -->
+	<insert id="insertData" parameterType="com.jdbc.dto.BoardDTO">
+		insert into board (num,
+		name, pwd, email, subject, content, ipAddr,hitCount, created) values
+		(#{num},
+		#{name}, #{pwd}, #{email}, #{subject}, #{content},
+		#{ipAddr},0, sysdate )
+	</insert>
+
+	<!-- 전체데이터 개수 -->
+	<select id="getDataCount" parameterType="hashMap"
+		resultType="int">
+		select nvl(count(*), 0) from board where ${searchKey} like
+		'%' || #{searchValue} || '%'
+	</select>
+
+	<!-- 전체데이터 -->
+	<select id="getLists" parameterType="hashMap"
+		resultType="com.jdbc.dto.BoardDTO">
+		select * from (
+		select rownum rnum, data.* from (
+		select num, name,
+		subject, hitCount, to_char(created,'YYYY-MM-DD') created from board
+		where ${searchKey} like '%' || #{searchValue} || '%'
+		order by num desc)
+		data)
+	<![CDATA[
+		where rnum >= #{start} and rnum <= #{end}
+	]]>
+
+	</select>
+	
+	<!-- 조회수 수정 -->
+	<update id="updateHitCount" parameterType="int">
+		update board set hitCount = hitCount + 1 where num = #{num}
+	</update>
+	
+	<!-- 한개의 데이터 -->
+	<select id="getReadData" parameterType="int" resultType="com.jdbc.dto.BoardDTO">
+		select num ,name, pwd, email, subject, content, ipAddr, hitCount, created from board where num = #{num}
+	</select>
+	
+	<!-- 데이터 수정 -->
+	<update id="updateData" parameterType="com.jdbc.dto.BoardDTO">
+		update board set name = #{name} , pwd = #{pwd}, email = #{email}, subject = #{subject} , content = #{content} where num = #{num}
+	</update>
+	
+	<!-- 데이터 삭제 -->
+	<delete id="deleteData" parameterType="int">
+		delete board where num = #{num}
+	</delete>
+	
+</mapper>
